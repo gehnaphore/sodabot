@@ -1,0 +1,51 @@
+<launch>
+
+	<machine name="odroid" address="odroid" user="odroid" env-loader="~/env.sh">
+  	</machine>
+
+	<param name="robot_description" command="$(find xacro)/xacro '$(find sodabot)/sodabot.urdf.xacro'"/>
+
+	<include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch">
+    	<arg name="fps_limit" value="30"/>
+    	<arg name="publish_tf" value="false"/>
+    	<arg name="base_name" value="head_mount_kinect2"/>
+		<!--
+    	<arg name="machine" value="odroid"/>
+    	<arg name="use_machine" value="false"/>
+		-->
+	</include>
+
+	<include file="$(find rgbdslam)/launch/rgbdslam_kinect2.launch">
+    	<arg name="base_name" value="head_mount_kinect2"/>		
+	</include>
+
+	<rosparam command="load" file="$(find lynxmotion_ssc32)/config/ssc32u_conf.yaml" ns="ssc32_node"/>
+	<node pkg="lynxmotion_ssc32" machine="odroid" type="ssc32_node" name="ssc32_node">
+	      <remap from="/head_controller/joint_states" to="/joint_states"/>
+	</node>
+
+	<node pkg="rpi" machine="odroid" type="wheel_controller_node" output="screen" name="wheel_controller_node"/>
+    <node pkg="rpi" machine="odroid" type="drive_controller_node" name="drive_controller_node"/>
+
+	<node pkg="robot_state_publisher" machine="odroid" type="robot_state_publisher" name="rob_st_pub">
+	</node>
+
+	<node respawn="true" pkg="joy"
+        type="joy_node" name="teleop_joy" >
+    	<param name="dev" type="string" value="/dev/input/js0" />
+    	<param name="deadzone" value="0.12" />
+  	</node>
+
+	<!-- Axes -->
+	<param name="axis_linear" value="1" type="int"/>
+	<param name="axis_angular" value="0" type="int"/>
+	<param name="scale_linear" value="1" type="double"/>
+	<param name="scale_angular" value="3.14" type="double"/>
+
+	<param name="axis_head_pan" value="3" type="int"/>
+	<param name="scale_head_pan" value="3.14" type="double"/>
+	<param name="axis_head_tilt" value="4" type="int"/>
+	<param name="scale_head_tilt" value="-1.57" type="double"/>
+
+	<node pkg="joy_md49" type="joy_md49_teleop" name="teleop"/>
+</launch>

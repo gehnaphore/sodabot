@@ -1,0 +1,671 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="sodabot">
+
+<!--
+topPlateDepth = 0.315;
+bottomPlateDepth = 0.357;
+baseWidth = 0.413;
+plateThickness = 0.00338;
+supportThickness = 0.0254;
+supportWallThickness = 0.0015;
+sideSupportPlateWidth = 0.0376;
+sideSupportPlateDepth = 0.0793;
+middleSupportPlateWidth = 0.086;
+middleSupportPlateDepth = 0.062;
+bottomPlateElevation = 0.091;
+topPlateElevation = 0.754;
+wheelsAtDepth = 0.041;
+
+-->
+	<xacro:property name="topPlateDepth" value="0.315"/>
+	<xacro:property name="bottomPlateDepth" value="0.357"/>
+	<xacro:property name="baseWidth" value="0.413"/>
+	<xacro:property name="plateThickness" value="0.00338"/>
+	<xacro:property name="supportThickness" value="0.0254"/>
+	<xacro:property name="supportWallThickness" value="0.0015"/>
+	<xacro:property name="bottomPlateElevation" value="0.091"/>
+	<xacro:property name="topPlateElevation" value="0.754"/>
+	<xacro:property name="wheelsAtDepth" value="0.041"/>
+	<xacro:property name="wheelOffsetFromBase" value="0.0132"/>
+	<xacro:property name="wheelJointHeightFromBase" value="0.036"/>
+
+	<xacro:property name="scaling" value="100"/>
+	<xacro:property name="scaling2" value="10000"/>
+	<xacro:property name="scaling5" value="10000000000"/>
+
+<!--
+	Battery = 2.5kg
+	Battery+converter = 3.7kg
+	Total = 8.15kg
+	-> Chassis + head assembly = 4.45
+
+	Volume = 1295.270142 m^3 (with scale = 100)
+	0.00129527 m^3 de-scaled
+	Rho for aluminum 6061 = 2712.6307 kg/m^3
+	Computed mass of chassis = 3.51 kg (PLAUSible!)
+	Head assembly = 4.45 - 3.51 = 0.94	
+-->
+
+	<xacro:property name="chassisMassFudgeFactor" value="5"/>
+	<xacro:property name="chassis_mass" value="${3.51*chassisMassFudgeFactor}"/>
+	<xacro:property name="chassis_scaled_volume" value="1295.270142"/>
+	<xacro:property name="chassis_volume" value="${chassis_scaled_volume / (scaling*scaling*scaling)}"/>
+	<xacro:property name="inertial_scale" value="${chassis_mass/(scaling5*chassis_volume)}"/>
+	<xacro:property name="inertial_scale2" value="${chassis_mass/chassis_volume}"/>
+
+	<xacro:property name="pi" value="3.14159265359"/>
+   	<xacro:property name="M_PI" value="3.14159265359"/>
+
+	<xacro:macro name="sphere_inertial" params="mass radius">
+		<inertial>
+			<mass value="${mass}" />
+			<inertia ixx="${mass*radius*radius*2/5}" ixy="0.0" ixz="0.0"
+	                 iyy="${mass*radius*radius*2/5}" iyz="0.0"
+                     izz="${mass*radius*radius*2/5}" />
+   		</inertial>
+   	</xacro:macro>
+
+	<xacro:macro name="cuboid_inertia" params="mass sx sy sz">
+			<inertia ixx="${mass*(sy*sy + sz*sz)/12}" ixy="0.0" ixz="0.0"
+	                 iyy="${mass*(sx*sx + sz*sz)/12}" iyz="0.0"
+                     izz="${mass*(sy*sy + sx*sx)/12}" />
+   	</xacro:macro>
+
+	<xacro:macro name="cuboid_inertial" params="mass sx sy sz">
+		<inertial>
+			<mass value="${mass}" />
+			<xacro:cuboid_inertia mass="${mass}" sx="${sx}" sy="${sy}" sz="${sz}"/>
+   		</inertial>
+   	</xacro:macro>
+
+	<xacro:macro name="cylinder_inertial" params="mass radius height">
+		<inertial>
+			<mass value="${mass}" />
+			<inertia ixx="${mass*height*height/12 + mass*radius*radius/4}" ixy="0.0" ixz="0.0"
+	                 iyy="${mass*height*height/12 + mass*radius*radius/4}" iyz="0.0"
+                     izz="${mass*radius*radius/2}" />
+   		</inertial>
+   	</xacro:macro>
+
+	<xacro:macro name="cylinder_link" params="mass radius height material">
+		<visual>
+	    	<geometry>
+	      		<cylinder length="${height}" radius="${radius}"/>
+	    	</geometry>
+	  		<origin rpy="0 0 0" xyz="0 0 0"/>
+		  	<material name="black"/>
+		</visual>
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+	      		<cylinder length="${height}" radius="${radius}"/>
+			</geometry>
+		</collision>
+		<xacro:cylinder_inertial mass="${mass}" radius="${radius}" height="${height}"/>
+   	</xacro:macro>
+
+    <material name="black">
+   		<color rgba="0 0 0 1"/>
+   	</material>
+
+	<link name="base_link">
+		<visual>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<mesh filename="package://sodabot/meshes/sodabot.dae"/>
+			</geometry>
+		</visual>
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+				<mesh filename="package://sodabot/meshes/sodabot.dae"/>
+			</geometry>
+		</collision>
+		<inertial>
+			<!--
+				From meshlab:
+				LOG: 2 Mesh Bounding Box Size 35.699898 41.299900 66.638039
+				LOG: 2 Mesh Bounding Box Diag 86.144028 
+				LOG: 2 Mesh Volume  is 1295.270142
+				LOG: 2 Mesh Surface is 9440.941406
+				LOG: 2 Thin shell barycenter  11.234901   0.000052  41.190918
+				LOG: 2 Center of Mass  is 11.913177 0.000048 40.919144
+				LOG: 2 Inertia Tensor is :
+				LOG: 2     | 1423924.500000   0.409780  38116.269531 |
+				LOG: 2     |  0.409780  1363803.125000   0.002875 |
+				LOG: 2     | 38116.269531   0.002875  367921.718750 |
+				LOG: 2 Principal axes are :
+				LOG: 2     |  0.999351  -0.000007  -0.036025 |
+				LOG: 2     |  0.000007   1.000000   0.000000 |
+				LOG: 2     |  0.036025  -0.000000   0.999351 |
+				LOG: 2 axis momenta are :
+				LOG: 2     | 1425298.500000  1363803.125000  366547.718750 |
+			-->	
+
+			<origin 
+				xyz="${11.913177/scaling} ${0/scaling} ${40.919144/scaling}" 
+				rpy="0 0 0"/>
+			<mass 
+				value="${chassis_mass}"/>
+<!--			<xacro:cuboid_inertia mass="${chassis_mass}" sx="${bottomPlateDepth}" sy="${baseWidth}" sz="${topPlateElevation-bottomPlateElevation}"/> -->
+			<inertia 
+				ixx="${1423924.500000*inertial_scale}"	ixy="${0.409780*inertial_scale}"			ixz="${38116.269531*inertial_scale}" 
+														iyy="${1363803.125000*inertial_scale}"		iyz="${0.002875*inertial_scale}"
+																									izz="${367921.718750*inertial_scale}" 
+				/>
+<!--
+			<inertia 
+				ixx="${0.000142*inertial_scale2}"	ixy="0"			ixz="${0.000004*inertial_scale2}" 
+														iyy="${0.000136*inertial_scale2}"		iyz="0"
+																									izz="${0.000037*inertial_scale2}" 
+				/>
+-->				
+		</inertial>
+	</link>
+	<gazebo reference="base_link">
+		<gravity>true</gravity>
+    	<material>Gazebo/Grey</material>
+		<kp  value="10000000.0" />
+  		<kd  value="1.0" />
+	</gazebo>
+
+	<link name="base_footprint">
+		<xacro:sphere_inertial mass="0.0001" radius="0.0001"/>
+	</link>
+	<joint name="base_to_footprint_attachment" type="fixed">
+	  <child link="base_link"/>
+	  <parent link="base_footprint"/>
+	  <origin rpy="0 0 0" xyz="0 0 0"/>
+	  <dynamics damping="0.0" friction="0.0"/>
+	</joint>
+
+	<link name="battery">
+		<visual>
+			<geometry>
+				<box size="0.095 0.170 0.095"/>
+			</geometry>
+	  		<origin rpy="0 0 0" xyz="0 0 0"/>
+	  	</visual>
+		<collision>
+			<geometry>
+				<box size="0.095 0.170 0.095"/>
+			</geometry>
+	  		<origin rpy="0 0 0" xyz="0 0 0"/>
+		</collision>
+		<xacro:cuboid_inertial mass="${2.5*chassisMassFudgeFactor}" sx="0.095" sy="0.170" sz="0.095"/>
+	</link>
+	<joint name="base_to_battery_attachment" type="fixed">
+	  <parent link="base_link"/>
+	  <child link="battery"/>
+	  <origin rpy="0 0 0" xyz="0 0 ${bottomPlateElevation + plateThickness + 0.095/2}"/>
+	  <dynamics damping="0.0" friction="0.0"/>
+	</joint>
+	<gazebo reference="battery">
+    	<turnGravityOff>false</turnGravityOff>
+    	<material>Gazebo/Black</material>
+	</gazebo>
+
+	<link name="lwheel">
+		<xacro:cylinder_link mass="0.3" radius="0.062" height="0.016" material="black"/>
+	</link>
+
+	<gazebo reference="lwheel">
+    	<mu1 value="0.5"/>
+    	<mu2 value="0.5"/>
+    	<turnGravityOff>false</turnGravityOff>
+    	<material>Gazebo/Black</material>
+	</gazebo>
+
+	<link name="rwheel">
+		<xacro:cylinder_link mass="0.3" radius="0.062" height="0.016" material="black"/>
+	</link>
+
+	<gazebo reference="rwheel">
+    	<mu1 value="0.5"/>
+    	<mu2 value="0.5"/>
+    	<turnGravityOff>false</turnGravityOff>
+    	<material>Gazebo/Grey</material>
+	</gazebo>
+
+	<link name="mwheel">
+		<visual>
+	    	<geometry>
+	      		<sphere radius="0.03"/>
+	    	</geometry>
+	  		<origin rpy="0 0 0" xyz="0 0 0"/>
+		  	<material name="black"/>
+		</visual>
+		<collision>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+			<geometry>
+	      		<sphere radius="0.03"/>
+			</geometry>
+		</collision>
+  	    <xacro:sphere_inertial mass="0.001" radius="0.03"/>
+	</link>
+	<gazebo reference="mwheel">
+    	<mu1 value="0.00000000001"/>
+    	<mu2 value="0.00000000001"/>
+    	<material>Gazebo/Grey</material>
+	</gazebo>
+
+	<joint name="base_to_rwheel" type="continuous">
+    <axis xyz="0 0 1"/>
+	  <parent link="base_link"/>
+	  <child link="rwheel"/>
+	  <origin rpy="${-pi/2} 0 0" xyz="0 ${-baseWidth/2 -wheelOffsetFromBase} ${bottomPlateElevation - wheelJointHeightFromBase}"/>
+	  <dynamics damping="0.0" friction="0.0"/>
+	  <limit effort="100" velocity="100"/>
+	  <joint_properties damping="0.0" friction="0.0"/>
+	</joint>
+
+	<joint name="base_to_lwheel" type="continuous">
+      <axis xyz="0 0 -1"/>
+	  <parent link="base_link"/>
+	  <child link="lwheel"/>
+	  <origin rpy="${pi/2} 0 0" xyz="0 ${baseWidth/2 + wheelOffsetFromBase} ${bottomPlateElevation - wheelJointHeightFromBase}"/>
+	  <dynamics damping="0.0" friction="0.0"/>
+	  <limit effort="100" velocity="100"/>
+	  <joint_properties damping="0.0" friction="0.0"/>
+	</joint>
+
+    <joint name="base_to_mwheel" type="fixed">
+      <axis xyz="0 0 1"/>
+	  <parent link="base_link"/>
+	  <child link="mwheel"/>
+	  <origin rpy="0 0 0" xyz="${bottomPlateDepth-wheelsAtDepth-0.01} 0 ${bottomPlateElevation - 0.06}"/>
+	  <dynamics damping="0.0" friction="0.0"/>
+	</joint>
+
+	<!-- Kinect Camera Location (Nominally 0) -->
+	<property name="cal_kinect_x" value="0.0" />
+	<property name="cal_kinect_y" value="0.0" />
+	<property name="cal_kinect_z" value="0.0" />
+	<property name="cal_kinect_roll" value="0.0" />
+	<property name="cal_kinect_pitch" value="0.0" />
+	<property name="cal_kinect_yaw" value="0.0" />
+
+	<xacro:macro name="kinect2_ir_gazebo_v0" params="link_name frame_name camera_name">
+	  <gazebo reference="${link_name}">
+	    <sensor type="depth" name="${name}_ir_sensor">
+	      <always_on>true</always_on>
+	      <update_rate>2.0</update_rate>
+	      <camera>
+	        <horizontal_fov>${57.0*M_PI/180.0}</horizontal_fov>
+	        <image>
+	          <format>L8</format>
+	          <width>640</width>
+	          <height>480</height>
+	        </image>
+	        <clip>
+	          <near>0.01</near>
+	          <far>5</far>
+	        </clip>
+	      </camera>
+	      <plugin name="${link_name}_controller" filename="libgazebo_ros_openni_kinect.so">
+	        <baseline>0.2</baseline>
+	        <alwaysOn>true</alwaysOn>
+	        <updateRate>2.0</updateRate>
+	        <cameraName>${camera_name}_ir</cameraName>
+	        <imageTopicName>/${camera_name}/ir/image_raw</imageTopicName>
+	        <cameraInfoTopicName>/${camera_name}/ir/camera_info</cameraInfoTopicName>
+	        <depthImageTopicName>/${camera_name}/depth/image_raw</depthImageTopicName>
+	        <depthImageCameraInfoTopicName>/${camera_name}/depth/camera_info</depthImageCameraInfoTopicName>
+	        <pointCloudTopicName>/${camera_name}/depth/points</pointCloudTopicName>
+	        <frameName>${frame_name}</frameName>
+	        <pointCloudCutoff>0.5</pointCloudCutoff>
+	        <distortionK1>0.00000001</distortionK1>
+	        <distortionK2>0.00000001</distortionK2>
+	        <distortionK3>0.00000001</distortionK3>
+	        <distortionT1>0.00000001</distortionT1>
+	        <distortionT2>0.00000001</distortionT2>
+	        <CxPrime>0</CxPrime>
+	        <Cx>0</Cx>
+	        <Cy>0</Cy>
+	        <focalLength>0</focalLength>
+	        <hackBaseline>0</hackBaseline>
+	      </plugin>
+	    </sensor>
+	    <material value="Gazebo/Red" />
+	  </gazebo>
+	</xacro:macro>
+
+	<xacro:macro name="kinect2_rgb_gazebo_v0" params="link_name frame_name camera_name">
+	  <gazebo reference="${link_name}">
+	    <sensor type="depth" name="${name}_rgb_sensor">
+	      <always_on>true</always_on>
+	      <update_rate>1.0</update_rate>
+	      <camera>
+	        <horizontal_fov>${57.0*M_PI/180.0}</horizontal_fov>
+	        <image>
+	          <format>B8G8R8</format>
+	          <width>640</width>
+	          <height>480</height>
+	        </image>
+	        <clip>
+	          <near>0.01</near>
+	          <far>100</far>
+	        </clip>
+	      </camera>
+	      <plugin name="${link_name}_controller" filename="libgazebo_ros_openni_kinect.so">
+	        <alwaysOn>true</alwaysOn>
+	        <updateRate>1.0</updateRate>
+	        <cameraName>${camera_name}_rgb</cameraName>
+	        <imageTopicName>/${camera_name}/rgb/image_raw</imageTopicName>
+	        <cameraInfoTopicName>/${camera_name}/rgb/camera_info</cameraInfoTopicName>
+	        <depthImageTopicName>/${camera_name}/depth/image_raw</depthImageTopicName>
+	        <depthImageCameraInfoTopicName>/${camera_name}/depth/camera_info</depthImageCameraInfoTopicName>
+	        <pointCloudTopicName>/${camera_name}/depth_registered/points</pointCloudTopicName>
+	        <frameName>${frame_name}</frameName>
+	        <pointCloudCutoff>0.5</pointCloudCutoff>
+	        <distortionK1>0.00000001</distortionK1>
+	        <distortionK2>0.00000001</distortionK2>
+	        <distortionK3>0.00000001</distortionK3>
+	        <distortionT1>0.00000001</distortionT1>
+	        <distortionT2>0.00000001</distortionT2>
+	        <CxPrime>0</CxPrime>
+	        <Cx>0</Cx>
+	        <Cy>0</Cy>
+	        <focalLength>0</focalLength>
+	        <hackBaseline>0</hackBaseline>
+	      </plugin>
+	    </sensor>
+	    <material value="Gazebo/Red" />
+	  </gazebo>
+	</xacro:macro>
+
+	<xacro:property name="ir_depth_rgb_offset_y" value="0.01"/> <!-- FIXME: what is this offset? -->
+
+  <!-- Kinect2 and mount assembly -->
+  <xacro:macro name="kinect2_v0" params="name parent *origin">
+    <joint name="${name}_kinect2_joint" type="fixed">
+      <insert_block name="origin" />
+      <parent link="${parent}"/>
+      <child link="${name}_kinect2_link"/>
+    </joint>
+    <link name="${name}_kinect2_link">
+	  <xacro:cuboid_inertial mass="0.0001" sx="0.065" sy="0.250" sz="0.050"/>
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+	   		<box size="0.065 0.250 0.050"/>
+        </geometry>
+        <material name="black">
+          <color rgba="0.5 0.5 0.5 1"/>
+        </material>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+	   		<box size="0.065 0.250 0.050"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- kinect2 ir sensor physical attachment -->
+    <joint name="${name}_kinect2_ir_joint" type="fixed">
+      <origin xyz="-0.032267 -0.0475 0.155" rpy="0 0 0"/>
+      <parent link="${name}_kinect2_link"/>
+      <child link="${name}_kinect2_ir_link"/>
+    </joint>
+    <link name="${name}_kinect2_ir_link">
+      <xacro:sphere_inertial mass="0.0001" radius="0.0005"/>
+      <visual>
+        <origin xyz="0.0 0.0 0" rpy="0 0 0"/>
+        <geometry>
+          <sphere radius="0.0005"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0.0 0.0 0" rpy="0 0 0"/>
+        <geometry>
+          <sphere radius="0.0005"/>
+        </geometry>
+      </collision>
+    </link>
+    <!-- kinect2 ir sensor frame -->
+    <joint name="${name}_kinect2_ir_optical_frame_joint" type="fixed">
+      <origin xyz="${cal_kinect_x}                  ${cal_kinect_y+ir_depth_rgb_offset_y} ${cal_kinect_z}"
+              rpy="${-M_PI/2+cal_kinect_roll}       ${0.0+cal_kinect_pitch}               ${-M_PI/2+cal_kinect_yaw}" />
+      <parent link="${name}_kinect2_ir_link"/>
+      <child link="${name}_kinect2_ir_optical_frame"/>
+    </joint>
+
+    <link name="${name}_kinect2_ir_optical_frame"/>
+    <!-- gazebo extensions -->
+    <xacro:kinect2_ir_gazebo_v0 link_name="${name}_kinect2_ir_link" frame_name="${name}_kinect2_ir_optical_frame" camera_name="head_mount_kinect2" />
+
+    <!-- kinect2 rgb sensor physical attachment -->
+    <joint name="${name}_kinect2_rgb_joint" type="fixed">
+      <origin xyz="0 -0.05175 0" rpy="0 0 0"/>
+      <parent link="${name}_kinect2_ir_link"/>
+      <child link="${name}_kinect2_rgb_link"/>
+    </joint>
+
+    <link name="${name}_kinect2_rgb_link" >
+      <xacro:sphere_inertial mass="0.0001" radius="0.0005"/>
+      <visual>
+        <origin xyz="${cal_kinect_x}            ${cal_kinect_y}                 ${cal_kinect_z}"
+                rpy="${-M_PI/2+cal_kinect_roll} ${0.0+cal_kinect_pitch}         ${-M_PI/2+cal_kinect_yaw}" />
+        <geometry>
+          <sphere radius="0.0005"/>
+        </geometry>
+      </visual>
+      <collision>
+        <origin xyz="0.0 0.0 0" rpy="0 0 0"/>
+        <geometry>
+          <sphere radius="0.0005"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <!-- kinect2 rgb sensor frame -->
+    <joint name="${name}_kinect2_rgb_optical_frame_joint" type="fixed">
+      <origin xyz="${cal_kinect_x}            ${cal_kinect_y}                 ${cal_kinect_z}"
+              rpy="${-M_PI/2+cal_kinect_roll} ${0.0+cal_kinect_pitch}         ${-M_PI/2+cal_kinect_yaw}" />
+      <parent link="${name}_kinect2_rgb_link"/>
+      <child link="${name}_kinect2_rgb_optical_frame"/>
+    </joint>
+
+    <link name="${name}_kinect2_rgb_optical_frame"/>
+    <!-- gazebo extensions -->
+    <xacro:kinect2_rgb_gazebo_v0 link_name="${name}_kinect2_rgb_link" frame_name="${name}_kinect2_rgb_optical_frame" camera_name="head_mount_kinect2" />
+
+  	</xacro:macro>
+
+	<link name="head_pan_base">
+		<visual>
+			<geometry>
+				<box size="0.06352 0.02975 0.0466"/>
+			</geometry>
+	  		<origin rpy="0 0 0" xyz="0 0 0"/>
+	  	</visual>
+		<collision>
+			<geometry>
+				<box size="0.06352 0.02975 0.0466"/>
+			</geometry>
+	  		<origin rpy="0 0 0" xyz="0 0 0"/>
+		</collision>
+		<xacro:cuboid_inertial mass="0.94" sx="0.06352" sy="0.02975" sz="0.0466"/>
+	</link>
+    <joint name="base_to_head_pan_base_joint" type="fixed">
+	  <parent link="base_link"/>
+	  <child link="head_pan_base"/>
+	  <origin rpy="0 0 0" xyz="0.090 0 ${topPlateElevation + plateThickness + 0.0466/2}"/>
+	  <dynamics damping="0.0" friction="0.0"/>
+	</joint>
+
+	<link name="head_tilt_base">
+		<visual>
+			<geometry>
+				<box size="0.075 0.075 0.04"/>
+			</geometry>
+	  		<origin rpy="0 0 0" xyz="0 0 0"/>
+	  	</visual>
+		<collision>
+			<geometry>
+				<box size="0.075 0.075 0.04"/>
+			</geometry>
+			<origin xyz="0 0 0" rpy="0 0 0"/>
+		</collision>
+		<xacro:cuboid_inertial mass="0.01" sx="0.075" sy="0.075" sz="0.04"/>		
+	</link>
+    <joint name="head_pan_joint" type="revolute">
+      <axis xyz="0 0 1"/>
+	  <parent link="head_pan_base"/>
+	  <child link="head_tilt_base"/>
+	  <origin rpy="0 0 0" xyz="0 0 ${0.0466}"/>
+	  <limit lower="${-pi/2}" upper="${pi/2}" effort="1" velocity="${pi/4}"/>
+	  <dynamics damping="1.0" friction="1.0"/>
+	</joint>
+
+	<link name="head_kinect_mount_link">
+		<origin xyz="0 0 ${-0.075/2}" rpy="0 0 0"/>
+		<visual>
+			<geometry>
+				<box size="0.024 0.078 0.075"/>
+			</geometry>
+	  	</visual>
+		<collision>
+			<geometry>
+				<box size="0.024 0.078 0.075"/>
+			</geometry>
+		</collision>
+		<xacro:cuboid_inertial mass="0.01" sx="0.024" sy="0.078" sz="0.075"/>
+	</link>
+  <joint name="head_tilt_joint" type="revolute">
+    <axis xyz="0 1 0"/>
+	  <parent link="head_tilt_base"/>
+	  <child link="head_kinect_mount_link"/>
+	  <origin rpy="0 0 0" xyz="0 0 0"/>
+	  <limit lower="${-pi*0.4}" upper="${pi*0.4}" effort="1" velocity="${pi/4}"/>
+	  <dynamics damping="1.0" friction="1.0"/>
+	</joint>
+
+    <xacro:kinect2_v0 name="head_mount" parent="head_kinect_mount_link" >
+      <origin xyz="0 0 ${0.080 - 0.050/2}" rpy="0 0 0" />
+    </xacro:kinect2_v0>
+<!--
+	<gazebo reference="head">
+		<sensor type="depth" name="camera">
+			<visualize>1</visualize>
+			<origin rpy="0 ${M_PI/2} 0" xyz="0 0 0"/> 
+            <always_on>true</always_on>
+	        <update_rate>20.0</update_rate>
+	        <camera name="head">
+	          <horizontal_fov>${60.0*M_PI/180.0}</horizontal_fov>
+	          <image>
+	            <format>B8G8R8</format>
+	            <width>640</width>
+	            <height>480</height>
+	          </image>
+	          <clip>
+	            <near>0.05</near>
+	            <far>100</far>
+	          </clip>
+	        </camera>
+	        <plugin name="kinect_camera_controller" filename="libgazebo_ros_openni_kinect.so">
+	          <cameraName>camera</cameraName>
+	          <alwaysOn>true</alwaysOn>
+	          <updateRate>10</updateRate>
+	          <imageTopicName>rgb/image_raw</imageTopicName>
+	          <depthImageTopicName>depth/image_raw</depthImageTopicName>
+	          <pointCloudTopicName>depth/points</pointCloudTopicName>
+	          <cameraInfoTopicName>rgb/camera_info</cameraInfoTopicName>
+	          <depthImageCameraInfoTopicName>depth/camera_info</depthImageCameraInfoTopicName>
+	          <frameName>head</frameName>
+	          <baseline>0.1</baseline>
+	          <distortion_k1>0.0</distortion_k1>
+	          <distortion_k2>0.0</distortion_k2>
+	          <distortion_k3>0.0</distortion_k3>
+	          <distortion_t1>0.0</distortion_t1>
+	          <distortion_t2>0.0</distortion_t2>
+	          <pointCloudCutoff>0.4</pointCloudCutoff>
+	        </plugin>
+		</sensor>		
+	</gazebo>
+-->
+
+	<transmission name="lwheel_trans">
+    	<type>transmission_interface/SimpleTransmission</type>
+    	<joint name="base_to_lwheel">
+      		<hardwareInterface>EffortJointInterface</hardwareInterface>
+    	</joint>
+    	<actuator name="lwheel_motor">
+      		<hardwareInterface>EffortJointInterface</hardwareInterface>
+      		<mechanicalReduction>1</mechanicalReduction>
+    	</actuator>
+	</transmission>
+
+	<transmission name="rwheel_trans">
+    	<type>transmission_interface/SimpleTransmission</type>
+    	<joint name="base_to_rwheel">
+      		<hardwareInterface>EffortJointInterface</hardwareInterface>
+    	</joint>
+    	<actuator name="rwheel_motor">
+      		<hardwareInterface>EffortJointInterface</hardwareInterface>
+      		<mechanicalReduction>1</mechanicalReduction>
+    	</actuator>
+	</transmission>
+
+	<transmission name="head_pan_trans">
+    	<type>transmission_interface/SimpleTransmission</type>
+    	<joint name="head_pan_joint">
+      		<hardwareInterface>PositionJointInterface</hardwareInterface>
+    	</joint>
+    	<actuator name="head_pan_servo">
+      		<hardwareInterface>PositionJointInterface</hardwareInterface>
+      		<mechanicalReduction>1</mechanicalReduction>
+    	</actuator>
+	</transmission>
+
+	<transmission name="head_tilt_trans">
+    	<type>transmission_interface/SimpleTransmission</type>
+    	<joint name="head_tilt_joint">
+      		<hardwareInterface>PositionJointInterface</hardwareInterface>
+    	</joint>
+    	<actuator name="head_tilt_servo">
+      		<hardwareInterface>PositionJointInterface</hardwareInterface>
+      		<mechanicalReduction>1</mechanicalReduction>
+    	</actuator>
+	</transmission>
+
+	<gazebo>
+		<!--
+		<physics type="ode" update_rate="100">
+		  <gravity xyz="0 0 -9.8"/>
+		  <ode>
+		    <solver type="quick" dt="0.01" iters="100" sor="1.3"/>
+		    <constraints cfm="0.0" erp="0.2" contact_max_correcting_vel="100.0" contact_surface_layer="0.001"/>
+		  </ode>
+		</physics>
+		-->
+
+		<plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+
+		</plugin>
+		
+		<plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
+	    	<rosDebugLevel>Debug</rosDebugLevel>
+	    	<legacyMode>false</legacyMode>
+    		<publishWheelTF>True</publishWheelTF>
+    		<publishTf>1</publishTf>
+			<publishWheelJointState>true</publishWheelJointState>
+			<broadcastTF>1</broadcastTF>
+    		<alwaysOn>true</alwaysOn>
+			<leftJoint>base_to_lwheel</leftJoint>
+			<rightJoint>base_to_rwheel</rightJoint>
+			<robotBaseFrame>base_footprint</robotBaseFrame>
+			<wheelSeparation>0.469</wheelSeparation>
+			<wheelDiameter>0.125</wheelDiameter>
+			<wheelTorque>1.56</wheelTorque>
+			<torque>1.56</torque>
+			<wheelAcceleration>1.8</wheelAcceleration>
+			<commandTopic>cmd_vel</commandTopic>
+    	<odometryFrame>odom</odometryFrame>
+			<odometryTopic>odom</odometryTopic>			
+		</plugin>
+		
+	</gazebo>
+
+</robot>

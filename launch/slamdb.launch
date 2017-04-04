@@ -1,0 +1,15 @@
+<launch>
+
+	<include file="$(find rgbdslam)/launch/rgbdslam_kinect2.launch">
+    	<arg name="base_name" value="head_mount_kinect2"/>		
+	</include>
+
+	<node pkg="octomap_server" type="octomap_server_node" name="octomap_server" >
+		<param name="resolution" value="0.05" />
+		<param name="frame_id" type="string" value="map" />
+		<param name="sensor_model/max_range" value="8.0" />
+        <param name="filter_ground" value="true"/>
+		<remap from="cloud_in" to="/rgbdslam/online_clouds" />
+	</node>
+
+</launch>
