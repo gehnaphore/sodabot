@@ -2,27 +2,10 @@
 
 	<param name="robot_description" command="$(find xacro)/xacro '$(find sodabot)/sodabot.urdf.xacro'"/>
 
-	<!--
-	<include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch">
-    	<arg name="fps_limit" value="30"/>
-    	<arg name="publish_tf" value="false"/>
-    	<arg name="base_name" value="head_mount_kinect2"/>
-	</include>
-
-	<include file="$(find rgbdslam)/launch/rgbdslam_kinect2.launch">
-    	<arg name="base_name" value="head_mount_kinect2"/>		
-	</include>
-	-->
-
 	<rosparam command="load" file="$(find sodahead_ctl)/config/sodahead_conf.yaml" ns="sodahead_node"/>
+
 	<node pkg="sodahead_ctl" type="sodahead_node" name="sodahead_node"  output="screen">
 	      <remap from="/head_controller/joint_states" to="/joint_states"/>
-	</node>
-
-	<node pkg="sodadrive" type="wheel_controller_node" output="screen" name="wheel_controller_node"/>
-    <node pkg="sodadrive" type="drive_controller_node" name="drive_controller_node"/>
-
-	<node pkg="robot_state_publisher" type="robot_state_publisher" name="rob_st_pub">
 	</node>
 
 	<node respawn="true" pkg="joy"
@@ -43,4 +26,5 @@
 	<param name="scale_head_tilt" value="-1.57" type="double"/>
 
 	<node pkg="sodabot_teleop" type="sodabot_teleop" name="teleop" required="true"/>
+	
 </launch>
