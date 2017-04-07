@@ -123,7 +123,7 @@ wheelsAtDepth = 0.041;
 		</collision>
 		<inertial>
 			<!--
-				From meshlab:
+				From meshlab: (old)
 				LOG: 2 Mesh Bounding Box Size 35.699898 41.299900 66.638039
 				LOG: 2 Mesh Bounding Box Diag 86.144028 
 				LOG: 2 Mesh Volume  is 1295.270142
@@ -140,17 +140,35 @@ wheelsAtDepth = 0.041;
 				LOG: 2     |  0.036025  -0.000000   0.999351 |
 				LOG: 2 axis momenta are :
 				LOG: 2     | 1425298.500000  1363803.125000  366547.718750 |
+
+				(new)
+				LOG: 2 Mesh Bounding Box Size 35.699898 41.299900 66.638039
+				LOG: 2 Mesh Bounding Box Diag 86.144028 
+				LOG: 2 Mesh Volume  is 1295.270142
+				LOG: 2 Mesh Surface is 9440.942383
+				LOG: 2 Thin shell barycenter  -11.234900  -0.000052  41.190914
+				LOG: 2 Center of Mass  is -11.913177 -0.000048 40.919144
+				LOG: 2 Inertia Tensor is :
+				LOG: 2     | 1423924.500000   0.409780  -38116.269531 |
+				LOG: 2     |  0.409780  1363803.125000  -0.002875 |
+				LOG: 2     | -38116.269531  -0.002875  367921.718750 |
+				LOG: 2 Principal axes are :
+				LOG: 2     |  0.999351  -0.000007   0.036025 |
+				LOG: 2     |  0.000007   1.000000  -0.000000 |
+				LOG: 2     | -0.036025   0.000000   0.999351 |
+				LOG: 2 axis momenta are :
+				LOG: 2     | 1425298.500000  1363803.125000  366547.718750 |
 			-->	
 
 			<origin 
-				xyz="${11.913177/scaling} ${0/scaling} ${40.919144/scaling}" 
+				xyz="${-11.913177/scaling} ${0/scaling} ${41.190914/scaling}" 
 				rpy="0 0 0"/>
 			<mass 
 				value="${chassis_mass}"/>
 <!--			<xacro:cuboid_inertia mass="${chassis_mass}" sx="${bottomPlateDepth}" sy="${baseWidth}" sz="${topPlateElevation-bottomPlateElevation}"/> -->
 			<inertia 
-				ixx="${1423924.500000*inertial_scale}"	ixy="${0.409780*inertial_scale}"			ixz="${38116.269531*inertial_scale}" 
-														iyy="${1363803.125000*inertial_scale}"		iyz="${0.002875*inertial_scale}"
+				ixx="${1423924.500000*inertial_scale}"	ixy="${0.409780*inertial_scale}"			ixz="${-38116.269531*inertial_scale}" 
+														iyy="${1363803.125000*inertial_scale}"		iyz="${-0.002875*inertial_scale}"
 																									izz="${367921.718750*inertial_scale}" 
 				/>
 <!--
@@ -273,7 +291,7 @@ wheelsAtDepth = 0.041;
       <axis xyz="0 0 1"/>
 	  <parent link="base_link"/>
 	  <child link="mwheel"/>
-	  <origin rpy="0 0 0" xyz="${bottomPlateDepth-wheelsAtDepth-0.01} 0 ${bottomPlateElevation - 0.06}"/>
+	  <origin rpy="0 0 0" xyz="${-bottomPlateDepth+wheelsAtDepth+0.01} 0 ${bottomPlateElevation - 0.06}"/>
 	  <dynamics damping="0.0" friction="0.0"/>
 	</joint>
 
@@ -491,7 +509,7 @@ wheelsAtDepth = 0.041;
     <joint name="base_to_head_pan_base_joint" type="fixed">
 	  <parent link="base_link"/>
 	  <child link="head_pan_base"/>
-	  <origin rpy="0 0 0" xyz="0.090 0 ${topPlateElevation + plateThickness + 0.0466/2}"/>
+	  <origin rpy="0 0 0" xyz="0 0 ${topPlateElevation + plateThickness + 0.0466/2}"/>
 	  <dynamics damping="0.0" friction="0.0"/>
 	</joint>
 
@@ -514,7 +532,7 @@ wheelsAtDepth = 0.041;
       <axis xyz="0 0 1"/>
 	  <parent link="head_pan_base"/>
 	  <child link="head_tilt_base"/>
-	  <origin rpy="0 0 0" xyz="0 0 ${0.0466}"/>
+	  <origin rpy="0 0 0" xyz="0 0 ${0.065}"/>
 	  <limit lower="${-pi/2}" upper="${pi/2}" effort="1" velocity="${pi/4}"/>
 	  <dynamics damping="1.0" friction="1.0"/>
 	</joint>

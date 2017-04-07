@@ -1,32 +1,35 @@
 <launch>
+	<machine name="deep-thought" address="deep-thought" env-loader="/home/geh/rosenv.sh" />
+	<machine name="sodabot" address="sodabot" env-loader="/home/geh/rosenv.sh" />
 
 	<param name="robot_description" command="$(find xacro)/xacro '$(find sodabot)/sodabot.urdf.xacro'"/>
 
-	<!--
 	<include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch">
-    	<arg name="fps_limit" value="30"/>
+    	<arg name="fps_limit" value="20"/>
     	<arg name="publish_tf" value="false"/>
     	<arg name="base_name" value="head_mount_kinect2"/>
+		<arg name="use_machine" value="true"/>
+		<arg name="machine" value="sodabot"/>
 	</include>
-
-	<include file="$(find rgbdslam)/launch/rgbdslam_kinect2.launch">
+	<!--
+	<include file="$(find rgbdslam)/launch/rgbdslam_kinect2.launch" machine="deep-thought">
     	<arg name="base_name" value="head_mount_kinect2"/>		
 	</include>
 	-->
 
 	<rosparam command="load" file="$(find sodahead_ctl)/config/sodahead_conf.yaml" ns="sodahead_node"/>
-	<node pkg="sodahead_ctl" type="sodahead_node" name="sodahead_node"  output="screen">
+	<node pkg="sodahead_ctl" type="sodahead_node" name="sodahead_node"  machine="sodabot">
 	      <remap from="/head_controller/joint_states" to="/joint_states"/>
 	</node>
 
-	<node pkg="sodadrive" type="wheel_controller_node" output="screen" name="wheel_controller_node"/>
-    <node pkg="sodadrive" type="drive_controller_node" name="drive_controller_node"/>
+	<node pkg="sodadrive" type="wheel_controller_node" name="wheel_controller_node" machine="sodabot"/>
+    <node pkg="sodadrive" type="drive_controller_node" name="drive_controller_node" machine="sodabot"/>
 
-	<node pkg="robot_state_publisher" type="robot_state_publisher" name="rob_st_pub">
+	<node pkg="robot_state_publisher" type="robot_state_publisher" name="rob_st_pub" machine="sodabot">
 	</node>
 
 	<node respawn="true" pkg="joy"
-        type="joy_node" name="teleop_joy" >
+        type="joy_node" name="teleop_joy" machine="sodabot">
     	<param name="dev" type="string" value="/dev/input/js0" />
     	<param name="deadzone" value="0.12" />
   	</node>
@@ -42,5 +45,5 @@
 	<param name="axis_head_tilt" value="5" type="int"/>
 	<param name="scale_head_tilt" value="-1.57" type="double"/>
 
-	<node pkg="sodabot_teleop" type="sodabot_teleop" name="teleop" required="true"/>
+	<node pkg="sodabot_teleop" type="sodabot_teleop" name="teleop" required="true" machine="sodabot"/>
 </launch>

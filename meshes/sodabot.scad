@@ -15,8 +15,8 @@ topPlateElevation = 0.754;
 wheelsAtDepth = 0.041;
 
 color("grey")
-    translate([-wheelsAtDepth,baseWidth/2,0])
-    rotate([0, 0, -90])
+    translate([wheelsAtDepth,-baseWidth/2,0])
+    rotate([0, 0, 90])
     translate([0, 0, 0]) {
         translate([0,0,bottomPlateElevation]) cube(size=[baseWidth, bottomPlateDepth, plateThickness], center=false);
         translate([0,0,topPlateElevation]) cube(size=[baseWidth, topPlateDepth, plateThickness], center=false);
