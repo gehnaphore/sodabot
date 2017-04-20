@@ -7,8 +7,11 @@
 	<node pkg="octomap_server" type="octomap_server_node" name="octomap_server" >
 		<param name="resolution" value="0.05" />
 		<param name="frame_id" type="string" value="map" />
-		<param name="sensor_model/max_range" value="8.0" />
+		<param name="sensor_model/max_range" value="5.0" />
         <param name="filter_ground" value="true"/>
+        <param name="pointcloud_max_z" value="1.5"/>
+        <param name="pointcloud_min_z" value="-0.10"/>
+        <param name="occpancy_min_z" value="0"/>
 		<remap from="cloud_in" to="/rgbdslam/online_clouds" />
 	</node>
 

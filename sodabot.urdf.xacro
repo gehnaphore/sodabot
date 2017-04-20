@@ -403,8 +403,10 @@ wheelsAtDepth = 0.041;
     </joint>
     <link name="${name}_kinect2_link">
 	  <xacro:cuboid_inertial mass="0.0001" sx="0.065" sy="0.250" sz="0.050"/>
+<!--
+      <origin xyz="0 0 0" rpy="0 0.026179929 0"/>
+-->			
       <visual>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
 	   		<box size="0.065 0.250 0.050"/>
         </geometry>
@@ -413,7 +415,6 @@ wheelsAtDepth = 0.041;
         </material>
       </visual>
       <collision>
-        <origin xyz="0 0 0" rpy="0 0 0"/>
         <geometry>
 	   		<box size="0.065 0.250 0.050"/>
         </geometry>
@@ -422,7 +423,10 @@ wheelsAtDepth = 0.041;
 
     <!-- kinect2 ir sensor physical attachment -->
     <joint name="${name}_kinect2_ir_joint" type="fixed">
+		  <!--
       <origin xyz="-0.032267 -0.0475 0.155" rpy="0 0 0"/>
+			-->
+      <origin xyz="0 -0.0475 0" rpy="0 0 0"/>
       <parent link="${name}_kinect2_link"/>
       <child link="${name}_kinect2_ir_link"/>
     </joint>
@@ -504,12 +508,12 @@ wheelsAtDepth = 0.041;
 			</geometry>
 	  		<origin rpy="0 0 0" xyz="0 0 0"/>
 		</collision>
-		<xacro:cuboid_inertial mass="0.94" sx="0.06352" sy="0.02975" sz="0.0466"/>
+		<xacro:cuboid_inertial mass="0.94" sx="0.06352" sy="0.02975" sz="0.0566"/>
 	</link>
     <joint name="base_to_head_pan_base_joint" type="fixed">
 	  <parent link="base_link"/>
 	  <child link="head_pan_base"/>
-	  <origin rpy="0 0 0" xyz="0 0 ${topPlateElevation + plateThickness + 0.0466/2}"/>
+	  <origin rpy="0 0 0" xyz="0 0 ${topPlateElevation + plateThickness + 0.0566/2}"/>
 	  <dynamics damping="0.0" friction="0.0"/>
 	</joint>
 
@@ -532,7 +536,7 @@ wheelsAtDepth = 0.041;
       <axis xyz="0 0 1"/>
 	  <parent link="head_pan_base"/>
 	  <child link="head_tilt_base"/>
-	  <origin rpy="0 0 0" xyz="0 0 ${0.065}"/>
+	  <origin rpy="0 0 0" xyz="0 0 ${0.0687}"/>
 	  <limit lower="${-pi/2}" upper="${pi/2}" effort="1" velocity="${pi/4}"/>
 	  <dynamics damping="1.0" friction="1.0"/>
 	</joint>
@@ -555,13 +559,13 @@ wheelsAtDepth = 0.041;
     <axis xyz="0 1 0"/>
 	  <parent link="head_tilt_base"/>
 	  <child link="head_kinect_mount_link"/>
-	  <origin rpy="0 0 0" xyz="0 0 0"/>
+	  <origin rpy="0 0 0" xyz="-0.01 0 0"/>
 	  <limit lower="${-pi*0.4}" upper="${pi*0.4}" effort="1" velocity="${pi/4}"/>
 	  <dynamics damping="1.0" friction="1.0"/>
 	</joint>
 
     <xacro:kinect2_v0 name="head_mount" parent="head_kinect_mount_link" >
-      <origin xyz="0 0 ${0.080 - 0.050/2}" rpy="0 0 0" />
+      <origin xyz="0.01 -0.015 ${0.075}" rpy="0 0.046179929 0" />
     </xacro:kinect2_v0>
 <!--
 	<gazebo reference="head">
@@ -683,7 +687,7 @@ wheelsAtDepth = 0.041;
     	<odometryFrame>odom</odometryFrame>
 			<odometryTopic>odom</odometryTopic>			
 		</plugin>
-		
+		80 - 0.050/2
 	</gazebo>
 
 </robot>
