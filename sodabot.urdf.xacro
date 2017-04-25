@@ -271,7 +271,7 @@ wheelsAtDepth = 0.041;
     <axis xyz="0 0 1"/>
 	  <parent link="base_link"/>
 	  <child link="rwheel"/>
-	  <origin rpy="${-pi/2} 0 0" xyz="0 ${-baseWidth/2 -wheelOffsetFromBase} ${bottomPlateElevation - wheelJointHeightFromBase}"/>
+	  <origin rpy="${pi/2} 0 0" xyz="0 ${baseWidth/2  + wheelOffsetFromBase} ${bottomPlateElevation - wheelJointHeightFromBase}"/>
 	  <dynamics damping="0.0" friction="0.0"/>
 	  <limit effort="100" velocity="100"/>
 	  <joint_properties damping="0.0" friction="0.0"/>
@@ -281,7 +281,7 @@ wheelsAtDepth = 0.041;
       <axis xyz="0 0 -1"/>
 	  <parent link="base_link"/>
 	  <child link="lwheel"/>
-	  <origin rpy="${pi/2} 0 0" xyz="0 ${baseWidth/2 + wheelOffsetFromBase} ${bottomPlateElevation - wheelJointHeightFromBase}"/>
+	  <origin rpy="${-pi/2} 0 0" xyz="0 ${-baseWidth/2 - wheelOffsetFromBase} ${bottomPlateElevation - wheelJointHeightFromBase}"/>
 	  <dynamics damping="0.0" friction="0.0"/>
 	  <limit effort="100" velocity="100"/>
 	  <joint_properties damping="0.0" friction="0.0"/>

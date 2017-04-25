@@ -11,11 +11,21 @@
 		<arg name="use_machine" value="true"/>
 		<arg name="machine" value="sodabot"/>
 	</include>
-	<!--
+
 	<include file="$(find rgbdslam)/launch/rgbdslam_kinect2.launch" machine="deep-thought">
     	<arg name="base_name" value="head_mount_kinect2"/>		
 	</include>
-	-->
+
+	<node pkg="octomap_server" type="octomap_server_node" name="octomap_server" machine="deep-thought">
+		<param name="resolution" value="0.05" />
+		<param name="frame_id" type="string" value="map" />
+		<param name="sensor_model/max_range" value="5.0" />
+        <param name="filter_ground" value="true"/>
+        <param name="pointcloud_max_z" value="1.5"/>
+        <param name="pointcloud_min_z" value="-0.10"/>
+        <param name="occpancy_min_z" value="0"/>
+		<remap from="cloud_in" to="/rgbdslam/online_clouds" />
+	</node>
 
 	<rosparam command="load" file="$(find sodahead_ctl)/config/sodahead_conf.yaml" ns="sodahead_node"/>
 	<node pkg="sodahead_ctl" type="sodahead_node" name="sodahead_node"  machine="sodabot">
@@ -35,15 +45,21 @@
   	</node>
 
 	<!-- Axes -->
-	<param name="axis_linear" value="1" type="int"/>
-	<param name="axis_angular" value="0" type="int"/>
-	<param name="scale_linear" value="1" type="double"/>
-	<param name="scale_angular" value="3.14" type="double"/>
+	<node pkg="sodabot_teleop" type="sodabot_teleop" name="teleop" required="true" machine="sodabot">
+		<param name="axis_linear" value="-1" type="int"/>
+		<param name="axis_accel" value="4" type="int"/>
+		<param name="axis_decel" value="3" type="int"/>
+		<param name="axis_angular" value="0" type="int"/>
+		<param name="scale_linear" value="0" type="double"/>
+		<param name="scale_accel" value="-0.5" type="double"/>
+		<param name="scale_decel" value="0.25" type="double"/>
+		<param name="offset_accel" value="-1.0" type="double"/>
+		<param name="offset_decel" value="-1.0" type="double"/>
+		<param name="scale_angular" value="1.57" type="double"/>
 
-	<param name="axis_head_pan" value="2" type="int"/>
-	<param name="scale_head_pan" value="3.14" type="double"/>
-	<param name="axis_head_tilt" value="5" type="int"/>
-	<param name="scale_head_tilt" value="-1.57" type="double"/>
-
-	<node pkg="sodabot_teleop" type="sodabot_teleop" name="teleop" required="true" machine="sodabot"/>
+		<param name="axis_head_pan" value="2" type="int"/>
+		<param name="scale_head_pan" value="3.14" type="double"/>
+		<param name="axis_head_tilt" value="5" type="int"/>
+		<param name="scale_head_tilt" value="-1.57" type="double"/>
+	</node>
 </launch>
