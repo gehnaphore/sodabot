@@ -5,7 +5,7 @@
 
 	<param name="robot_description" command="$(find xacro)/xacro '$(find sodabot)/sodabot.urdf.xacro'"/>
 
-	<include file="$(find kinect2_bridge)/launch/kinect2_bridge.launch">
+	<include file="$(find sodabot)/launch/kinect2_bridge.launch">
     	<arg name="fps_limit" value="20"/>
     	<arg name="publish_tf" value="false"/>
     	<arg name="base_name" value="head_mount_kinect2"/>
@@ -13,7 +13,7 @@
 		<arg name="machine" value="sodabot"/>
 	</include>
 
-	<include file="$(find rgbdslam)/launch/rgbdslam_kinect2.launch" machine="deep-thought">
+	<include file="$(find sodabot)/launch/rgbdslam_kinect2.launch" machine="deep-thought">
     	<arg name="base_name" value="head_mount_kinect2"/>		
 	</include>
 
@@ -28,7 +28,7 @@
 		<remap from="cloud_in" to="/rgbdslam/online_clouds" />
 	</node>
 
-	<rosparam command="load" file="$(find sodahead_ctl)/config/sodahead_conf.yaml" ns="sodahead_node"/>
+	<rosparam command="load" file="$(find sodahead)/config/sodahead_conf.yaml" ns="sodahead_node"/>
 	<node pkg="sodahead_ctl" type="sodahead_node" name="sodahead_node"  machine="sodabot">
 	      <remap from="/head_controller/joint_states" to="/joint_states"/>
 	</node>
