@@ -13,8 +13,9 @@
 		<arg name="machine" value="sodabot"/>
 	</include>
 
-	<include file="$(find sodabot)/launch/rgbdslam_kinect2.launch" machine="deep-thought">
+	<include file="$(find sodabot)/launch/rgbdslam_kinect2.launch">
     	<arg name="base_name" value="head_mount_kinect2"/>		
+    	<arg name="machine" value="deep-thought"/>		
 	</include>
 
 	<node pkg="octomap_server" type="octomap_server_node" name="octomap_server" machine="deep-thought">
@@ -24,18 +25,19 @@
         <param name="filter_ground" value="true"/>
         <param name="pointcloud_max_z" value="1.5"/>
         <param name="pointcloud_min_z" value="-0.10"/>
-        <param name="occpancy_min_z" value="0"/>
+        <param name="occupancy_min_z" value="0"/>
 		<remap from="cloud_in" to="/rgbdslam/online_clouds" />
 	</node>
 
-	<rosparam command="load" file="$(find sodahead)/config/sodahead_conf.yaml" ns="sodahead_node"/>
+	<rosparam command="load" file="$(find sodabot)/config/sodahead_conf.yaml" ns="sodahead_node"/>
+
 	<node pkg="sodahead_ctl" type="sodahead_node" name="sodahead_node"  machine="sodabot">
 	      <remap from="/head_controller/joint_states" to="/joint_states"/>
 	</node>
-<!--
+
 	<node pkg="sodadrive" type="wheel_controller_node" name="wheel_controller_node" machine="sodabot"/>
     <node pkg="sodadrive" type="drive_controller_node" name="drive_controller_node" machine="sodabot"/>
--->
+
 	<node pkg="robot_state_publisher" type="robot_state_publisher" name="rob_st_pub" machine="sodabot">
 	</node>
 
