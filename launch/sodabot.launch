@@ -22,11 +22,15 @@
 		<param name="resolution" value="0.05" />
 		<param name="frame_id" type="string" value="map" />
 		<param name="sensor_model/max_range" value="5.0" />
+		<param name="sensor_model/miss" value="0.2" />
         <param name="filter_ground" value="true"/>
-        <param name="pointcloud_max_z" value="1.5"/>
+		<param name="ground_filter/distance" value="0.05"/>
+		<param name="ground_filter/angle" value="20"/>
+		<param name="ground_filter/plane_distance" value="0.10"/>
+        <param name="pointcloud_max_z" value="1.3"/>
         <param name="pointcloud_min_z" value="-0.10"/>
         <param name="occupancy_min_z" value="0"/>
-		<remap from="cloud_in" to="/rgbdslam/online_clouds" />
+		<remap from="cloud_in" to="/rgbdslam/batch_clouds" />
 	</node>
 
 	<rosparam command="load" file="$(find sodabot)/config/sodahead_conf.yaml" ns="sodahead_node"/>
@@ -37,7 +41,6 @@
 
 	<node pkg="sodadrive" type="wheel_controller_node" name="wheel_controller_node" machine="sodabot"/>
     <node pkg="sodadrive" type="drive_controller_node" name="drive_controller_node" machine="sodabot"/>
-
 	<node pkg="robot_state_publisher" type="robot_state_publisher" name="rob_st_pub" machine="sodabot">
 	</node>
 
@@ -61,7 +64,7 @@
 		<param name="scale_angular" value="1.57" type="double"/>
 
 		<param name="axis_head_pan" value="2" type="int"/>
-		<param name="scale_head_pan" value="3.14" type="double"/>
+		<param name="scale_head_pan" value="0.5" type="double"/>
 		<param name="axis_head_tilt" value="5" type="int"/>
 		<param name="scale_head_tilt" value="-1.57" type="double"/>
 	</node>
